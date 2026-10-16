@@ -29,6 +29,7 @@ class Emu:
         self.rom = rom
         self.pyboy = PyBoy(str(rom), window=window, scale=scale, sound_emulated=False, log_level="WARNING")
         self.pyboy.set_emulation_speed(speed)
+        self.windowed = window != "null"
 
     # --- lifecycle -------------------------------------------------------
 
@@ -48,8 +49,10 @@ class Emu:
 
     # --- time ------------------------------------------------------------
 
-    def tick(self, frames: int = 1, render: bool = False) -> bool:
-        """Advance the emulator. Returns False if the emulator has stopped."""
+    def tick(self, frames: int = 1, render: bool | None = None) -> bool:
+        """Advance the emulator. Renders when a window is open unless told otherwise. False = emulator stopped."""
+        if render is None:
+            render = self.windowed
         return self.pyboy.tick(frames, render)
 
     # --- input -----------------------------------------------------------

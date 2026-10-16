@@ -22,6 +22,7 @@ STEP_FRAMES_MAX = 40  # a Gen 1 step is 16 frames; give a turn + a step room
 WARP_FRAMES_MAX = 180  # door fade in/out
 NPC_WAIT_FRAMES = 40
 NPC_WAIT_TRIES = 6
+SCRIPT_WAIT_FRAMES = 180  # fades, door animations and battle exits lock input for a while
 
 
 @dataclass
@@ -63,6 +64,25 @@ class Pilot:
                 return
             self.emu.tick(1)
 
+    def wait_for_control(self, max_frames: int = SCRIPT_WAIT_FRAMES) -> bool:
+        """Wait until the game gives the player the controls back (no script lock, no step in progress).
+
+        Returns True if control is available, False if a script still holds it after max_frames.
+        """
+        quiet = 0
+        for _ in range(max_frames):
+            s = self.state()
+            if s.battle is not None or s.text_box_open:
+                return True  # those are events for the caller, not a lock
+            if not s.script_control and not s.moving:
+                quiet += 1
+                if quiet >= 8:
+                    return True
+            else:
+                quiet = 0
+            self.emu.tick(1)
+        return False
+
     # --- one press --------------------------------------------------------
 
     def step(self, direction: str, expect: Node) -> Event | None:
@@ -87,6 +107,13 @@ class Pilot:
         finally:
             self.emu.release(direction)
         self._settle()
+        # A ledge jump moves two tiles; the position changes before the landing. Give it time to land.
+        if abs(expect[1] - before[1]) + abs(expect[2] - before[2]) == 2 and expect[0] == before[0]:
+            for _ in range(48):
+                if self.node() == expect:
+                    break
+                self.emu.tick(1)
+            self._settle()
         s = self.state()
         ev = self._interrupt(s)
         if ev:
@@ -118,6 +145,7 @@ class Pilot:
         replans = 0
         self.world.temp_blocked.clear()
         while True:
+            self.wait_for_control()
             s = self.state()
             ev = self._interrupt(s)
             if ev:
@@ -133,7 +161,9 @@ class Pilot:
             self.log(f"[pilot] route {start} -> {dest}: {len(route.presses)} steps via {' > '.join(route.summary()['maps'])}")
             ev = self._follow(route)
             if ev is None:
-                return Event("arrived", self.world.maps[dest].name, self.state())
+                self.wait_for_control()
+                s = self.state()
+                return self._interrupt(s) or Event("arrived", self.world.maps[dest].name, s)
             if ev.kind in ("blocked", "off_route") and replans < max_replans:
                 replans += 1
                 self.log(f"[pilot] {ev}; replanning ({replans})")
