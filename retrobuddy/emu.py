@@ -73,6 +73,8 @@ class Emu:
         return (self.pyboy.memory[addr] << 8) | self.pyboy.memory[addr + 1]
 
     def read_block(self, addr: int, length: int) -> bytes:
+        if length <= 0:
+            return b""
         return bytes(self.pyboy.memory[addr : addr + length])
 
     def read_many(self, addrs: Iterable[int]) -> list[int]:

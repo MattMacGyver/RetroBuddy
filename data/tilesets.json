@@ -1,0 +1,395 @@
+{
+ "OVERWORLD": {
+  "name": "Overworld",
+  "passable": [
+   0,
+   16,
+   27,
+   32,
+   33,
+   35,
+   44,
+   45,
+   46,
+   48,
+   49,
+   51,
+   57,
+   60,
+   62,
+   82,
+   84,
+   88,
+   91
+  ],
+  "grass_tile": 82,
+  "water": true
+ },
+ "REDS_HOUSE_1": {
+  "name": "RedsHouse1",
+  "passable": [
+   1,
+   2,
+   3,
+   17,
+   18,
+   19,
+   20,
+   28,
+   26
+  ],
+  "grass_tile": null,
+  "water": false
+ },
+ "MART": {
+  "name": "Mart",
+  "passable": [
+   17,
+   26,
+   28,
+   60,
+   94
+  ],
+  "grass_tile": null,
+  "water": false
+ },
+ "FOREST": {
+  "name": "Forest",
+  "passable": [
+   30,
+   32,
+   46,
+   48,
+   52,
+   55,
+   57,
+   58,
+   64,
+   81,
+   82,
+   90,
+   92,
+   94,
+   95
+  ],
+  "grass_tile": 32,
+  "water": true
+ },
+ "REDS_HOUSE_2": {
+  "name": "RedsHouse2",
+  "passable": [
+   1,
+   2,
+   3,
+   17,
+   18,
+   19,
+   20,
+   28,
+   26
+  ],
+  "grass_tile": null,
+  "water": false
+ },
+ "DOJO": {
+  "name": "Dojo",
+  "passable": [
+   17,
+   22,
+   25,
+   43,
+   60,
+   61,
+   63,
+   74,
+   76,
+   77,
+   3
+  ],
+  "grass_tile": null,
+  "water": true
+ },
+ "POKECENTER": {
+  "name": "Pokecenter",
+  "passable": [
+   17,
+   26,
+   28,
+   60,
+   94
+  ],
+  "grass_tile": null,
+  "water": false
+ },
+ "GYM": {
+  "name": "Gym",
+  "passable": [
+   17,
+   22,
+   25,
+   43,
+   60,
+   61,
+   63,
+   74,
+   76,
+   77,
+   3
+  ],
+  "grass_tile": null,
+  "water": true
+ },
+ "HOUSE": {
+  "name": "House",
+  "passable": [
+   1,
+   18,
+   20,
+   40,
+   50,
+   55,
+   68,
+   84,
+   92
+  ],
+  "grass_tile": null,
+  "water": false
+ },
+ "FOREST_GATE": {
+  "name": "ForestGate",
+  "passable": [
+   1,
+   18,
+   20,
+   26,
+   28,
+   55,
+   56,
+   59,
+   60,
+   94
+  ],
+  "grass_tile": null,
+  "water": false
+ },
+ "MUSEUM": {
+  "name": "Museum",
+  "passable": [
+   1,
+   18,
+   20,
+   26,
+   28,
+   55,
+   56,
+   59,
+   60,
+   94
+  ],
+  "grass_tile": null,
+  "water": false
+ },
+ "UNDERGROUND": {
+  "name": "Underground",
+  "passable": [
+   11,
+   12,
+   19,
+   21,
+   24
+  ],
+  "grass_tile": null,
+  "water": false
+ },
+ "GATE": {
+  "name": "Gate",
+  "passable": [
+   1,
+   18,
+   20,
+   26,
+   28,
+   55,
+   56,
+   59,
+   60,
+   94
+  ],
+  "grass_tile": null,
+  "water": false
+ },
+ "SHIP": {
+  "name": "Ship",
+  "passable": [
+   4,
+   13,
+   23,
+   29,
+   30,
+   35,
+   52,
+   55,
+   57,
+   74
+  ],
+  "grass_tile": null,
+  "water": true
+ },
+ "SHIP_PORT": {
+  "name": "ShipPort",
+  "passable": [
+   10,
+   26,
+   50,
+   59
+  ],
+  "grass_tile": null,
+  "water": true
+ },
+ "CEMETERY": {
+  "name": "Cemetery",
+  "passable": [
+   1,
+   16,
+   19,
+   27,
+   34,
+   66,
+   82
+  ],
+  "grass_tile": null,
+  "water": false
+ },
+ "INTERIOR": {
+  "name": "Interior",
+  "passable": [
+   4,
+   15,
+   21,
+   31,
+   59,
+   69,
+   71,
+   85,
+   86
+  ],
+  "grass_tile": null,
+  "water": false
+ },
+ "CAVERN": {
+  "name": "Cavern",
+  "passable": [
+   5,
+   21,
+   24,
+   26,
+   32,
+   33,
+   34,
+   42,
+   45,
+   48
+  ],
+  "grass_tile": null,
+  "water": true
+ },
+ "LOBBY": {
+  "name": "Lobby",
+  "passable": [
+   20,
+   23,
+   26,
+   28,
+   32,
+   56,
+   69
+  ],
+  "grass_tile": null,
+  "water": false
+ },
+ "MANSION": {
+  "name": "Mansion",
+  "passable": [
+   1,
+   5,
+   17,
+   18,
+   20,
+   26,
+   28,
+   44,
+   83
+  ],
+  "grass_tile": null,
+  "water": false
+ },
+ "LAB": {
+  "name": "Lab",
+  "passable": [
+   12,
+   38,
+   22,
+   30,
+   52,
+   55
+  ],
+  "grass_tile": null,
+  "water": false
+ },
+ "CLUB": {
+  "name": "Club",
+  "passable": [
+   15,
+   26,
+   31,
+   38,
+   40,
+   41,
+   44,
+   45,
+   46,
+   47,
+   65
+  ],
+  "grass_tile": null,
+  "water": false
+ },
+ "FACILITY": {
+  "name": "Facility",
+  "passable": [
+   1,
+   16,
+   17,
+   19,
+   27,
+   32,
+   33,
+   34,
+   48,
+   49,
+   50,
+   66,
+   67,
+   72,
+   82,
+   85,
+   88,
+   94
+  ],
+  "grass_tile": null,
+  "water": true
+ },
+ "PLATEAU": {
+  "name": "Plateau",
+  "passable": [
+   27,
+   35,
+   44,
+   45,
+   59,
+   69
+  ],
+  "grass_tile": 69,
+  "water": true
+ }
+}
