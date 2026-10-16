@@ -36,6 +36,8 @@ SPRITE_FACING = {0x0: "down", 0x4: "up", 0x8: "left", 0xC: "right"}
 wWalkCounter = 0xCFC5  # non-zero while a step animation is in progress
 wJoyIgnore = 0xCD6B  # non-zero while a script has taken the controls
 
+wRepelRemainingSteps = 0xD0DB  # steps of Repel left; dev tests set it high to walk without encounters
+
 # --- player ---------------------------------------------------------------
 wPlayerName = C.PLAYER_NAME_ADDRESS
 wPlayerMoney = C.PLAYER_MONEY_ADDRESS  # 3 bytes BCD
@@ -54,6 +56,20 @@ wEnemyMonMaxHP = 0xCFF4  # 2 bytes
 wBattleMonHP = 0xD015  # 2 bytes, the player's active mon
 wBattleMonMaxHP = 0xD023  # 2 bytes
 wPlayerMonNumber = 0xCC2F  # party index of the active mon
+
+# --- menus (pokered wram.asm "WRAM" section; wPlayerMonNumber = 0xCC2F anchors the block) ----
+wTopMenuItemY = 0xCC24  # screen row (tiles) of the first item
+wTopMenuItemX = 0xCC25  # screen column of the cursor
+wCurrentMenuItem = 0xCC26
+wTileBehindCursor = 0xCC27
+wMaxMenuItem = 0xCC28  # index of the last item
+wMenuWatchedKeys = 0xCC29
+wLastMenuItem = 0xCC2A
+wMenuJoypadPollCount = 0xCC34
+wListScrollOffset = 0xCC36
+TILE_CURSOR = 0xED  # "▶" drawn at the selected item
+wItemQuantity = 0xCF96  # quantity being chosen in a buy/sell/toss prompt (verified live in plan 2 step 4)
+MENU_ROW_SPACING = 2
 
 # --- screen ---------------------------------------------------------------
 wTileMap = 0xC3A0  # 20 x 18 tile ids; text glyphs share ids with pokered's charmap

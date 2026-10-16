@@ -23,6 +23,7 @@
    91
   ],
   "grass_tile": 82,
+  "counter_tiles": [],
   "water": true
  },
  "REDS_HOUSE_1": {
@@ -39,6 +40,7 @@
    26
   ],
   "grass_tile": null,
+  "counter_tiles": [],
   "water": false
  },
  "MART": {
@@ -51,6 +53,11 @@
    94
   ],
   "grass_tile": null,
+  "counter_tiles": [
+   24,
+   25,
+   30
+  ],
   "water": false
  },
  "FOREST": {
@@ -73,6 +80,7 @@
    95
   ],
   "grass_tile": 32,
+  "counter_tiles": [],
   "water": true
  },
  "REDS_HOUSE_2": {
@@ -89,6 +97,7 @@
    26
   ],
   "grass_tile": null,
+  "counter_tiles": [],
   "water": false
  },
  "DOJO": {
@@ -107,6 +116,9 @@
    3
   ],
   "grass_tile": null,
+  "counter_tiles": [
+   58
+  ],
   "water": true
  },
  "POKECENTER": {
@@ -119,6 +131,11 @@
    94
   ],
   "grass_tile": null,
+  "counter_tiles": [
+   24,
+   25,
+   30
+  ],
   "water": false
  },
  "GYM": {
@@ -137,6 +154,9 @@
    3
   ],
   "grass_tile": null,
+  "counter_tiles": [
+   58
+  ],
   "water": true
  },
  "HOUSE": {
@@ -153,6 +173,7 @@
    92
   ],
   "grass_tile": null,
+  "counter_tiles": [],
   "water": false
  },
  "FOREST_GATE": {
@@ -170,6 +191,10 @@
    94
   ],
   "grass_tile": null,
+  "counter_tiles": [
+   23,
+   50
+  ],
   "water": false
  },
  "MUSEUM": {
@@ -187,6 +212,10 @@
    94
   ],
   "grass_tile": null,
+  "counter_tiles": [
+   23,
+   50
+  ],
   "water": false
  },
  "UNDERGROUND": {
@@ -199,6 +228,7 @@
    24
   ],
   "grass_tile": null,
+  "counter_tiles": [],
   "water": false
  },
  "GATE": {
@@ -216,6 +246,10 @@
    94
   ],
   "grass_tile": null,
+  "counter_tiles": [
+   23,
+   50
+  ],
   "water": false
  },
  "SHIP": {
@@ -233,6 +267,7 @@
    74
   ],
   "grass_tile": null,
+  "counter_tiles": [],
   "water": true
  },
  "SHIP_PORT": {
@@ -244,6 +279,7 @@
    59
   ],
   "grass_tile": null,
+  "counter_tiles": [],
   "water": true
  },
  "CEMETERY": {
@@ -258,6 +294,9 @@
    82
   ],
   "grass_tile": null,
+  "counter_tiles": [
+   18
+  ],
   "water": false
  },
  "INTERIOR": {
@@ -274,6 +313,7 @@
    86
   ],
   "grass_tile": null,
+  "counter_tiles": [],
   "water": false
  },
  "CAVERN": {
@@ -291,6 +331,7 @@
    48
   ],
   "grass_tile": null,
+  "counter_tiles": [],
   "water": true
  },
  "LOBBY": {
@@ -305,6 +346,10 @@
    69
   ],
   "grass_tile": null,
+  "counter_tiles": [
+   21,
+   54
+  ],
   "water": false
  },
  "MANSION": {
@@ -321,6 +366,7 @@
    83
   ],
   "grass_tile": null,
+  "counter_tiles": [],
   "water": false
  },
  "LAB": {
@@ -334,6 +380,7 @@
    55
   ],
   "grass_tile": null,
+  "counter_tiles": [],
   "water": false
  },
  "CLUB": {
@@ -352,6 +399,10 @@
    65
   ],
   "grass_tile": null,
+  "counter_tiles": [
+   7,
+   23
+  ],
   "water": false
  },
  "FACILITY": {
@@ -377,6 +428,9 @@
    94
   ],
   "grass_tile": null,
+  "counter_tiles": [
+   18
+  ],
   "water": true
  },
  "PLATEAU": {
@@ -390,6 +444,7 @@
    69
   ],
   "grass_tile": 69,
+  "counter_tiles": [],
   "water": true
  }
 }

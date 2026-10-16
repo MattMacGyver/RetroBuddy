@@ -58,6 +58,7 @@ class MapData:
     ledges: set[tuple[int, int, str]]
     blocked: set[tuple[int, int, str]]
     sight: set[tuple[int, int]] = field(default_factory=set)  # tiles seen by stationary trainers
+    mart: list[list[str]] = field(default_factory=list)  # clerk inventories, if this map is a shop
 
     def walkable(self, x: int, y: int) -> bool:
         return 0 <= x < self.width and 0 <= y < self.height and self.grid[y][x] in ".,"
@@ -83,10 +84,13 @@ class World:
                 grid=d["grid"], warps=[dict(w) for w in d["warps"]], connections=d["connections"], npcs=d["npcs"],
                 ledges={(l["x"], l["y"], l["dir"]) for l in d["ledges"]},
                 blocked={(b["x"], b["y"], b["dir"]) for b in d["blocked_edges"]},
+                mart=d.get("mart", []),
             )
             self.maps[const] = m
             self.by_id[m.id] = m
         self.temp_blocked: set[Node] = set()  # dynamic obstacles the pilot found (NPCs); cleared per travel
+        prices_path = Path(maps_path).parent / "prices.json"
+        self.prices: dict[str, int] = json.loads(prices_path.read_text()) if prices_path.exists() else {}
         self._resolve_last_map_warps()
         self._compute_sight()
 

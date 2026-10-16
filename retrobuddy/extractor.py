@@ -36,6 +36,15 @@ class Battle:
 
 
 @dataclass
+class Menu:
+    cursor: int
+    items: list[str]
+    x: int
+    y: int
+    scroll: int = 0
+
+
+@dataclass
 class GameState:
     map_id: int
     map_name: str
@@ -57,6 +66,7 @@ class GameState:
     text_waiting_for_a: bool
     text: str
     battle: Battle | None = None
+    menu: Menu | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -130,6 +140,35 @@ def read_text(emu: Emu) -> tuple[bool, bool, str]:
     return box_open, waiting, " / ".join(l for l in lines if l)
 
 
+def read_menu(emu: Emu) -> Menu | None:
+    """A menu is open when the game's cursor glyph sits where the menu variables say it should."""
+    y0 = emu.read(R.wTopMenuItemY)
+    x0 = emu.read(R.wTopMenuItemX)
+    cur = emu.read(R.wCurrentMenuItem)
+    mx = emu.read(R.wMaxMenuItem)
+    if not (0 <= x0 < R.SCREEN_W and 0 <= y0 < R.SCREEN_H and cur <= mx <= 15):
+        return None
+    tiles = emu.read_block(R.wTileMap, R.SCREEN_W * R.SCREEN_H)
+    cy = y0 + cur * R.MENU_ROW_SPACING
+    if cy >= R.SCREEN_H or tiles[cy * R.SCREEN_W + x0] != R.TILE_CURSOR:
+        return None
+    items = []
+    for i in range(mx + 1):
+        ry = y0 + i * R.MENU_ROW_SPACING
+        if ry >= R.SCREEN_H:
+            break
+        row = tiles[ry * R.SCREEN_W + x0 + 1 : (ry + 1) * R.SCREEN_W]
+        label = R.decode_text(row).strip()
+        # the label ends at the box's right border (0x7B) or a run of spaces
+        label = label.split("  ")[0].strip()
+        items.append(label)
+    while items and not items[-1]:
+        items.pop()
+    if not items:
+        return None
+    return Menu(cursor=cur, items=items, x=x0, y=y0, scroll=emu.read(R.wListScrollOffset))
+
+
 def read_battle(emu: Emu) -> Battle | None:
     kind_code = emu.read(R.wIsInBattle)
     if kind_code == 0:
@@ -173,6 +212,7 @@ def extract(emu: Emu) -> GameState:
         text_waiting_for_a=waiting,
         text=text,
         battle=read_battle(emu),
+        menu=read_menu(emu),
     )
 
 
@@ -189,6 +229,9 @@ def summary(s: GameState) -> str:
     lines.append("bag: " + (", ".join(f"{n}x{q}" for n, q in s.bag) or "empty"))
     lines.append("warps: " + ", ".join(f"({w['x']},{w['y']})->{w['dest_map_name']}" for w in s.warps))
     lines.append("npcs: " + (", ".join(f"#{n['sprite']}@({n['x']},{n['y']})" for n in s.npcs) or "none"))
+    if s.menu:
+        m = s.menu
+        lines.append("MENU open: " + " | ".join(f"{'>' if i == m.cursor else ' '}{it}" for i, it in enumerate(m.items)))
     if s.battle:
         b = s.battle
         lines.append(f"BATTLE {b.kind}: enemy {b.enemy_species} L{b.enemy_level} {b.enemy_hp}/{b.enemy_max_hp}; ours slot {b.active_slot} {b.active_hp}/{b.active_max_hp}")

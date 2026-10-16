@@ -52,6 +52,61 @@ def strip_comment(line: str) -> str:
 
 # --- constants --------------------------------------------------------------
 
+def parse_sprite_constants() -> dict[str, int]:
+    out, i = {}, 0
+    for line in (POKERED / "constants/sprite_constants.asm").read_text().splitlines():
+        line = strip_comment(line).strip()
+        if line.startswith("const_def"):
+            i = 0
+        elif line.startswith("const "):
+            out[line.split()[1]] = i
+            i += 1
+    return out
+
+
+def parse_marts(map_labels: dict[str, str]) -> dict[str, list[list[str]]]:
+    """Map const -> list of clerk inventories (a map can have several clerks, e.g. Celadon floors)."""
+    out: dict[str, list[list[str]]] = {}
+    label = None
+    for line in (POKERED / "data/items/marts.asm").read_text().splitlines():
+        raw = line
+        line = strip_comment(line).strip()
+        m = re.match(r"(\w+?)(Clerk\d?|Clerk\dText|)(Text)?::", line)
+        if line.endswith("::"):
+            label = line[:-2]
+            continue
+        if line.startswith("script_mart") and label and "unreferenced" not in raw:
+            base = re.sub(r"Clerk\d?Text$", "", label)
+            const = map_labels.get(base)
+            if const:
+                out.setdefault(const, []).append(args_of(line))
+    return out
+
+
+def parse_prices() -> dict[str, int]:
+    """Item name -> price (ItemPrices is in item-id order; TM prices separate)."""
+    names = []
+    for line in (POKERED / "constants/item_constants.asm").read_text().splitlines():
+        line = strip_comment(line).strip()
+        if line.startswith("const ") and not line.startswith("const_"):
+            names.append(line.split()[1])
+    prices = []
+    for line in (POKERED / "data/items/prices.asm").read_text().splitlines():
+        line = strip_comment(line).strip()
+        if line.startswith("bcd3 "):
+            prices.append(int(line.split()[1]))
+    # item ids start at 1 (MASTER_BALL); the first const is NO_ITEM, so prices[i-1] is item i's price
+    out = {names[i]: prices[i - 1] for i in range(1, min(len(names), len(prices) + 1))}
+    tm = []
+    for line in (POKERED / "data/items/tm_prices.asm").read_text().splitlines():
+        line = strip_comment(line).strip()
+        if line.startswith("nybble ") or line.startswith("db "):
+            tm.extend(int(x) for x in re.findall(r"\d+", line))
+    for i, p in enumerate(tm, start=1):
+        out[f"TM_{i:02d}"] = p * 1000
+    return out
+
+
 def parse_map_constants() -> list[dict]:
     maps = []
     for line in (POKERED / "constants/map_constants.asm").read_text().splitlines():
@@ -78,7 +133,8 @@ def parse_tileset_headers() -> list[dict]:
         line = strip_comment(line).strip()
         if line.startswith("tileset "):
             a = args_of(line)
-            out.append({"name": a[0], "grass_tile": num(a[4]) if num(a[4]) >= 0 else None})
+            counters = [num(t) for t in a[1:4] if num(t) >= 0]
+            out.append({"name": a[0], "grass_tile": num(a[4]) if num(a[4]) >= 0 else None, "counter_tiles": counters})
     return out
 
 
@@ -234,6 +290,7 @@ def build_map(m: dict, hdr: dict, ts_names: list[str], ts_headers: list[dict], c
     bst = (POKERED / blocks[ts_name]).read_bytes()
     passable = set(coll[ts_name])
     grass_tile = ts_headers[ts_idx]["grass_tile"]
+    counter_tiles = set(ts_headers[ts_idx]["counter_tiles"])
     tiles = build_tile_grid(blk, bst, wb, hb)
     W, H = wb * 2, hb * 2
 
@@ -247,6 +304,8 @@ def build_map(m: dict, hdr: dict, ts_names: list[str], ts_headers: list[dict], c
             t = coll_tile(x, y)
             if t == WATER_TILE and hdr["tileset"] in water_ts:
                 row += "~"
+            elif t in counter_tiles:
+                row += "c"
             elif t not in passable:
                 row += "#"
             elif grass_tile is not None and t == grass_tile:
@@ -327,9 +386,16 @@ def main() -> int:
             continue
         out[m["const"]] = build_map(m, hdr, ts_names, ts_headers, coll, blocks, water_ts, ledges, pairs)
 
+    map_labels = {h["label"]: const for const, h in headers.items()}
+    marts = parse_marts(map_labels)
+    for const, invs in marts.items():
+        if const in out:
+            out[const]["mart"] = invs
     (DATA / "maps.json").write_text(json.dumps(out, indent=0))
+    (DATA / "prices.json").write_text(json.dumps(parse_prices(), indent=0))
+    (DATA / "sprites.json").write_text(json.dumps(parse_sprite_constants(), indent=0))
     (DATA / "tilesets.json").write_text(json.dumps(
-        {ts_names[i]: {"name": h["name"], "passable": coll[h["name"]], "grass_tile": h["grass_tile"], "water": ts_names[i] in water_ts} for i, h in enumerate(ts_headers)}, indent=1))
+        {ts_names[i]: {"name": h["name"], "passable": coll[h["name"]], "grass_tile": h["grass_tile"], "counter_tiles": h["counter_tiles"], "water": ts_names[i] in water_ts} for i, h in enumerate(ts_headers)}, indent=1))
     print(f"maps: {len(out)} built, {len(skipped)} skipped (no header/blk): {skipped[:8]}{'...' if len(skipped) > 8 else ''}")
     print(f"pokered commit: {subprocess.run(['git', '-C', str(POKERED), 'rev-parse', '--short', 'HEAD'], capture_output=True, text=True).stdout.strip()}")
     return 0

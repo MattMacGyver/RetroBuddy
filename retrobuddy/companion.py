@@ -31,8 +31,14 @@ than treating it as an error. If a walk fails because the game still has the con
 to say the screen has settled instead of retrying the same tool repeatedly.
 Discovery is Matt's: do not volunteer story objectives, where items are, or what the game wants next
 (no "Oak's Parcel is at the Mart") unless he asks, or he has been stuck on the same thing for a while.
-Answer direct questions directly. Your travel tool goes to places (towns, routes, buildings), not to
-people or counters; there is no talk-to or heal tool yet.
+Answer direct questions directly.
+Your tools: travel goes to places (towns, routes, buildings). talk_to talks to a person on the current
+map by role ("nurse", "clerk", "mom", "oak") or by their number in the npcs list. When a choice is
+pending, choose picks an option by the label shown (use the labels you see, e.g. HEAL or CANCEL, YES or
+NO, BUY). heal_at_center goes to the nearest Pokémon Center and heals the whole party. shop buys a list of
+items at the nearest Mart (item names as in the game, e.g. POKE_BALL, POTION). Use heal_at_center and
+shop when Matt asks to heal or buy; use talk_to when he wants to speak to someone. If a tool says a
+scene played or a script took over, narrate it rather than retrying blindly.
 Never invent game mechanics, levels, or move data; use only what the state tells you."""
 
 TOOLS = [
@@ -50,8 +56,32 @@ TOOLS = [
     },
     {
         "name": "advance_text",
-        "description": "Press A through the dialogue currently on screen until the text box closes or a choice appears. Use when a text box is open.",
+        "description": "Press A through the dialogue currently on screen until the text box closes or a choice appears (then it reports choice_pending with the options). Use when a text box is open.",
         "input_schema": {"type": "object", "properties": {}},
+    },
+    {
+        "name": "talk_to",
+        "description": "Walk up to a person on the current map and press A. target is a role word ('nurse', 'clerk', 'mom', 'oak', 'rival') or '#n' for the n-th npc in the state's npc list. Returns text_opened with their first line, or no_such_npc / blocked.",
+        "input_schema": {"type": "object", "properties": {"target": {"type": "string"}}, "required": ["target"]},
+    },
+    {
+        "name": "choose",
+        "description": "Pick an option in the menu that is currently open, by its label as shown (e.g. 'HEAL', 'CANCEL', 'YES', 'NO', 'BUY') or by index. Only valid when the state shows a MENU open.",
+        "input_schema": {"type": "object", "properties": {"option": {"type": "string"}}, "required": ["option"]},
+    },
+    {
+        "name": "heal_at_center",
+        "description": "Go to the nearest Pokémon Center, talk to the nurse, and heal the whole party. Returns healed, or the event that stopped it (e.g. encounter_started on the way).",
+        "input_schema": {"type": "object", "properties": {}},
+    },
+    {
+        "name": "shop",
+        "description": "Buy items at the nearest Mart. items is a list of {name, qty} with game item names (POKE_BALL, POTION, ANTIDOTE, REPEL ...). Returns bought with a receipt and the bag, or shop_unavailable / cant_afford / not_stocked.",
+        "input_schema": {
+            "type": "object",
+            "properties": {"items": {"type": "array", "items": {"type": "object", "properties": {"name": {"type": "string"}, "qty": {"type": "integer"}}, "required": ["name", "qty"]}}},
+            "required": ["items"],
+        },
     },
 ]
 
@@ -85,6 +115,15 @@ class Companion:
             ev = self.execute(lambda: self.pilot.travel(args["destination"], pol))
         elif name == "advance_text":
             ev = self.execute(lambda: self.pilot.advance_text())
+        elif name == "talk_to":
+            ev = self.execute(lambda: self.pilot.talk_to(args["target"]))
+        elif name == "choose":
+            ev = self.execute(lambda: self.pilot.choose(args["option"]))
+        elif name == "heal_at_center":
+            ev = self.execute(lambda: self.pilot.heal_at_center())
+        elif name == "shop":
+            items = [(it["name"], int(it["qty"])) for it in args.get("items", [])]
+            ev = self.execute(lambda: self.pilot.shop(items))
         else:
             return f"unknown tool {name}"
         self.log(f"[event] {ev}")
