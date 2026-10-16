@@ -1,0 +1,15 @@
+# RetroBuddy — never commit these
+ROMs/
+saves/
+*.gb
+*.gbc
+*.state
+*.ram
+*.rtc
+.env
+.venv/
+logs/
+__pycache__/
+*.pyc
+data/pokered/
+.pytest_cache/
