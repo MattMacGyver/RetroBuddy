@@ -27,8 +27,12 @@ Matt has to fight it by hand for now. The emulator keyboard is: arrow keys to mo
 S = the B button, Enter = Start, Backspace = Select. Never tell Matt to press Z or X (they save and
 load emulator snapshots) or Space or Escape.
 When a game script takes over (a text box opens on its own), tell Matt what the game is doing rather
-than treating it as an error. If a walk fails because the game still has the controls, wait for Matt
-to say the screen has settled instead of retrying the same tool repeatedly.
+than treating it as an error. If a tool reports the game still has the controls or a scene is playing,
+use the wait tool and check again yourself; never ask Matt whether the screen has settled, and never
+ask him for directions twice in a row when nothing has changed.
+Relay what characters say: quote the lines the tools give you (lightly cleaned up), in that character's
+voice, rather than summarizing them away. When we arrive somewhere, say what the place is and who is
+around (the state lists npcs and exits) before asking what Matt wants.
 Discovery is Matt's: do not volunteer story objectives, where items are, or what the game wants next
 (no "Oak's Parcel is at the Mart") unless he asks, or he has been stuck on the same thing for a while.
 Answer direct questions directly.
@@ -58,6 +62,11 @@ TOOLS = [
         "name": "advance_text",
         "description": "Press A through the dialogue currently on screen until the text box closes or a choice appears (then it reports choice_pending with the options). Use when a text box is open.",
         "input_schema": {"type": "object", "properties": {}},
+    },
+    {
+        "name": "wait",
+        "description": "Let the game run for up to a few seconds until it hands the controls back or something happens (a text box, a choice, a battle). Use this instead of asking Matt whether the screen has settled. Returns ready, text_opened, choice_pending, encounter_started, or still_busy.",
+        "input_schema": {"type": "object", "properties": {"seconds": {"type": "number", "description": "How long to wait at most (default 3)."}}},
     },
     {
         "name": "talk_to",
@@ -115,6 +124,8 @@ class Companion:
             ev = self.execute(lambda: self.pilot.travel(args["destination"], pol))
         elif name == "advance_text":
             ev = self.execute(lambda: self.pilot.advance_text())
+        elif name == "wait":
+            ev = self.execute(lambda: self.pilot.wait(float(args.get("seconds", 3))))
         elif name == "talk_to":
             ev = self.execute(lambda: self.pilot.talk_to(args["target"]))
         elif name == "choose":
@@ -141,9 +152,14 @@ class Companion:
         self.history.append({"role": "user", "content": content})
         final_text = []
         for _ in range(8):  # tool-call rounds per turn
-            resp = self.client.messages.create(
-                model=self.model, max_tokens=600, system=self._system(), tools=TOOLS, messages=self.history
-            )
+            try:
+                resp = self.client.messages.create(
+                    model=self.model, max_tokens=600, system=self._system(), tools=TOOLS, messages=self.history
+                )
+            except anthropic.APIError as e:  # logged, not fatal; the next turn retries
+                self.log(f"[error] API call failed: {type(e).__name__}: {e}")
+                self.history.pop()  # drop the user content that got no answer so the history stays valid
+                return f"(API error: {type(e).__name__}; say that again in a moment)"
             self.history.append({"role": "assistant", "content": [b.model_dump() for b in resp.content]})
             tool_uses = [b for b in resp.content if b.type == "tool_use"]
             for b in resp.content:

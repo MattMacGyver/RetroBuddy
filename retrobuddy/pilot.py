@@ -344,6 +344,23 @@ class Pilot:
         s = self.state()
         return Event("chosen", f"{items[target]} -> " + (s.text or (" | ".join(s.menu.items) if s.menu else "menu closed")), s)
 
+    def wait(self, seconds: float = 3.0) -> Event:
+        """Let the game run until it hands control back (or a text box / menu / battle appears), then report."""
+        frames = int(seconds * 60)
+        for _ in range(frames):
+            s = self.state()
+            if s.battle is not None:
+                return Event("encounter_started", f"{s.battle.kind} {s.battle.enemy_species} L{s.battle.enemy_level}", s)
+            if s.menu is not None:
+                return Event("choice_pending", " | ".join(s.menu.items), s)
+            if s.text_box_open and s.text_waiting_for_a:
+                return Event("text_opened", s.text, s)
+            if not s.script_control and not s.moving and not s.text_box_open:
+                return Event("ready", "you have the controls", s)
+            self.emu.tick(1)
+        s = self.state()
+        return Event("still_busy", "the game still has the controls" if s.script_control else "a scene is still playing", s)
+
     def nearest_map(self, needle: str, policy: Policy | None = None) -> tuple[str, Route | None] | None:
         """The reachable map whose name contains needle (e.g. 'POKECENTER'), by route length."""
         policy = policy or Policy.fight()
@@ -455,16 +472,21 @@ class Pilot:
             if ev is not None:
                 return ev
         ev = None
+        said: list[str] = []
         for attempt in range(2):  # the first talk may be a one-time script (e.g. Viridian's parcel)
             ev = self.talk_to("clerk")
             if ev.kind != "text_opened":
                 return ev
+            if ev.detail:
+                said.append(ev.detail)
             ev = self.advance_text()
             if ev.kind == "choice_pending":
                 break
+            if ev.detail:
+                said.append(ev.detail)
             self.wait_for_control()
         if ev is None or ev.kind != "choice_pending":
-            return Event("shop_unavailable", f"the clerk isn't selling right now: {ev.detail if ev else ''}", self.state())
+            return Event("shop_unavailable", "the clerk didn't open the shop; they said: " + (" / ".join(said) or "(nothing readable)"), self.state())
         ev = self.choose("buy")
         for _ in range(120):  # "Take your time." then the item list draws
             if self.state().menu is not None:
@@ -557,7 +579,7 @@ def _guarded(name: str):
     return deco
 
 
-for _name in ("travel", "talk_to", "choose", "advance_text", "heal_at_center", "shop", "select_list_item"):
+for _name in ("travel", "talk_to", "choose", "advance_text", "heal_at_center", "shop", "select_list_item", "wait"):
     setattr(Pilot, _name, _guarded(_name)(getattr(Pilot, _name)))
 
 
