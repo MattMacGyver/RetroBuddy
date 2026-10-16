@@ -86,6 +86,7 @@ class World:
             )
             self.maps[const] = m
             self.by_id[m.id] = m
+        self.temp_blocked: set[Node] = set()  # dynamic obstacles the pilot found (NPCs); cleared per travel
         self._resolve_last_map_warps()
         self._compute_sight()
 
@@ -163,10 +164,10 @@ class World:
                 continue
             nx, ny = x + dx, y + dy
             if 0 <= nx < m.width and 0 <= ny < m.height:
-                if not m.walkable(nx, ny):
+                if not m.walkable(nx, ny) or (const, nx, ny) in self.temp_blocked:
                     continue
                 w = m.warp_at(nx, ny)
-                if w and w.get("dest_map") in self.maps and "dest_x" in w:
+                if w and w.get("dest_map") in self.maps and "dest_x" in w and self._warp_fires(m, w, d):
                     yield (w["dest_map"], w["dest_x"], w["dest_y"]), policy.warp, d
                     continue
                 cost = 1.0
@@ -191,6 +192,27 @@ class World:
                     tx, ty = 0, y - 2 * off
                 if target.walkable(tx, ty):
                     yield (target.const, tx, ty), 1.0, d
+
+    @staticmethod
+    def _warp_fires(m: MapData, w: dict, d: str) -> bool:
+        """Does stepping onto this warp tile in direction d take the warp?
+
+        Outdoor maps: building doors and cave mouths are entered by walking UP into them.
+        Indoor maps: an exit on the bottom row fires when walked DOWN into, top row UP, side
+        columns toward that side; interior warps (stairs, holes, pads) fire from any direction.
+        """
+        x, y = w["x"], w["y"]
+        if m.tileset == "OVERWORLD":
+            return d == "up"
+        if y == m.height - 1:
+            return d == "down"
+        if y == 0:
+            return d == "up"
+        if x == 0:
+            return d == "left"
+        if x == m.width - 1:
+            return d == "right"
+        return True
 
     @staticmethod
     def _connection_for(m: MapData, d: str) -> dict | None:

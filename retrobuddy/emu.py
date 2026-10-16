@@ -63,6 +63,15 @@ class Emu:
         if settle_frames:
             self.tick(settle_frames)
 
+    def hold(self, button: str) -> None:
+        """Press and keep held until release()."""
+        if button not in BUTTONS:
+            raise ValueError(f"unknown button {button!r}")
+        self.pyboy.button_press(button)
+
+    def release(self, button: str) -> None:
+        self.pyboy.button_release(button)
+
     # --- memory ----------------------------------------------------------
 
     def read(self, addr: int) -> int:
